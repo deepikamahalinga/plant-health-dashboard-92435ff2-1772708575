@@ -1,0 +1,48 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+model Plant {
+  id           String         @id @default(uuid()) @db.Uuid
+  healthStatus HealthStatus   @default(healthy)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  readings     SensorReading[]
+
+  @@index([healthStatus])
+}
+
+model SensorReading {
+  id        String   @id @default(uuid()) @db.Uuid
+  plantId   String   @db.Uuid
+  plant     Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  value     Float
+  type      SensorType
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+  @@index([timestamp])
+  @@index([type])
+}
+
+enum HealthStatus {
+  healthy
+  warning
+  critical
+}
+
+enum SensorType {
+  TEMPERATURE
+  HUMIDITY
+  SOIL_MOISTURE
+  LIGHT
+  PH
+}
